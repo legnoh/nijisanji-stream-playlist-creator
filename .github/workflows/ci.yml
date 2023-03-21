@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: nanasess/setup-chromedriver@v1.1.0
+    - name: Install pipenv
+      run: pipx install pipenv
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        cache: pipenv
+    - name: Install dependencies
+      run: pipenv install
