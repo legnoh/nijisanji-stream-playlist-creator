@@ -15,7 +15,7 @@ jobs:
     steps:
 
     - name: Check Out Repo 
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Download token.json
       run: echo ${{ secrets.YOUTUBE_TOKEN_FILE }} | base64 -d > token.json
