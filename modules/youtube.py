@@ -25,7 +25,7 @@ def get_subscriptions(youtube, **params):
   params['pageToken'] = ''
   params['maxResults'] = 50
   params['part'] = 'id,snippet'
-  params['fields'] = 'items(id,snippet(title,resourceId(channelId)))'
+  # params['fields'] = 'items(id,snippet(title,resourceId(channelId)))'
 
   while params['pageToken'] is not None:
     subscriptions_response = youtube.subscriptions().list(**params).execute()

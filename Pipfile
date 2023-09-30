@@ -5,11 +5,13 @@ name = "pypi"
 
 [packages]
 google-api-python-client = "*"
-pyyaml = "*"
-google-auth-oauthlib = "*"
-requests = "*"
 google-auth-httplib2 = "*"
+google-auth-oauthlib = "*"
+janome = "*"
+lingua-language-detector = "*"
 oauth2client = "*"
+pyyaml = "*"
+requests = "*"
 
 [dev-packages]
 
