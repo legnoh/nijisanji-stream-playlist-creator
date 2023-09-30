@@ -57,3 +57,9 @@ if __name__ == '__main__':
         }
       }
     })
+
+  print('--------------------')
+
+  for i in range(video_count, video_count+10):
+    v = elected_videos[i]
+    print("【次点】[{d}] {title} / {author}".format(d=v['start_at'], title=v['title'], author=v['channel_name']))
