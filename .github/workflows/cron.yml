@@ -36,7 +36,6 @@ jobs:
       run: pipenv run main
       env:
         YOUTUBE_PLAYLIST_ID: ${{ secrets.YOUTUBE_PLAYLIST_ID }}
-        TZ: ${{ secrets.TZ }}
 
     - name: Upload tmp folder
       uses: actions/upload-artifact@v3
