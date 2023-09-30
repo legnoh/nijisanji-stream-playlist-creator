@@ -10,7 +10,7 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
 
     now = datetime.now(timezone.utc)
     niji_datetimeformat = '%Y-%m-%dT%H:%M:%S.%f%z'
-    favorite_keywords = ['雑談', '朝', '昼', '凸', 'ラジオ', 'らじ', 'RADIO', '料理']
+    favorite_keywords = ['雑談', '朝', '昼', '凸', 'ラジオ', 'らじ', 'RADIO', '料理', '掃除', '作業', '勉強']
     filter_keyword = '歌'
     words = []
     t = Tokenizer("./niji_dict.csv", udic_enc="utf8")
