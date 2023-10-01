@@ -1,30 +1,35 @@
-import requests,re
-from datetime import datetime, timezone
-from lingua import Language, LanguageDetectorBuilder
+from datetime import datetime
 from janome.tokenizer import Tokenizer, Token
-import collections
-import itertools
+from lingua import Language, LanguageDetectorBuilder
+from zoneinfo import ZoneInfo
+import collections,itertools,re,requests
 import modules.opeapi as opeapi
 
 def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15):
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(ZoneInfo("Asia/Tokyo"))
     niji_datetimeformat = '%Y-%m-%dT%H:%M:%S.%f%z'
+    if now.hour >= 12:
+        day_offsets = ["0"]
+    else:
+        day_offsets = ["0", "-1"]
+
+    all_channels = {}
+    all_movies = []
+    nominated_movies = []
+    youtube_video_ids = []
+
     favorite_keywords = ['雑談', '朝', '昼', '凸', 'ラジオ', 'らじ', 'RADIO', '料理', '掃除', '作業', '勉強']
     filter_keyword = '歌'
-    words = []
-    t = Tokenizer("./niji_dict.csv", udic_enc="utf8")
-    all_movies = []
-    all_channels = {}
-    nominated_movies = []
     common_words = []
-    youtube_video_ids = []
+    words = []
 
     languages = [Language.JAPANESE, Language.ENGLISH, Language.KOREAN, Language.INDONESIAN]
     detector = LanguageDetectorBuilder.from_languages(*languages).build()
+    t = Tokenizer("./niji_dict.csv", udic_enc="utf8")
 
     try:
-        for day_offset in ["-1", "0"]:
+        for day_offset in day_offsets:
             print("fetch movie data with day_offset={o}".format(o=day_offset))
             response = requests.get(
                 url="https://www.nijisanji.jp/api/streams",
@@ -126,8 +131,8 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
                 continue
 
             # 配信前で、配信開始前15分以上のものも除外する
-            if m['end_at'] == None and m['status'] == 'not_on_air' and (m['start_at'] - now).seconds < wait_minutes * 60:
-                print("除外(開始{n}分以上前): {t}".format(n=archive_hours,t=m['title']))
+            if m['end_at'] == None and m['status'] == 'not_on_air' and (m['start_at'] - now).seconds > wait_minutes * 60:
+                print("除外(開始{n}分以上前): {t}".format(n=wait_minutes,t=m['title']))
                 continue
 
             # 配信言語指定がある場合、指定した言語以外の配信を除外する
@@ -151,17 +156,17 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             if m['subscribed'] and m['keyword_match']:
                 movies_genred[1].append(m)
                 continue
-            
-            # 3: 配信中, 登録チャンネル
-            if m['status'] == 'on_air' and m['subscribed']:
-                movies_genred[2].append(m)
-                continue
 
             # 4: キーワード一致
             if m['keyword_match']:
                 movies_genred[3].append(m)
                 continue
-            
+
+            # 3: 配信中, 登録チャンネル
+            if m['status'] == 'on_air' and m['subscribed']:
+                movies_genred[2].append(m)
+                continue
+
             # 5: 登録チャンネル
             if m['subscribed']:
                 movies_genred[4].append(m)
