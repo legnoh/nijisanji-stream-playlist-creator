@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import collections,itertools,re,requests
 import modules.opeapi as opeapi
 
-def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15):
+def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15) -> list:
 
     now = datetime.now(ZoneInfo("Asia/Tokyo"))
     niji_datetimeformat = '%Y-%m-%dT%H:%M:%S.%f%z'

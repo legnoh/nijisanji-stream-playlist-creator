@@ -45,8 +45,8 @@ if __name__ == '__main__':
 
   for i in range(0, video_count):
 
-    v = elected_videos[i]
-    print("【確定】[{d}] {title} / {author}".format(d=v['start_at'], title=v['title'], author=v['channel_name']))
+    v = elected_videos.pop(0)
+    print("【確定】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
 
     yt.insert_playlistitem(youtube, body={
       'snippet': {
@@ -60,6 +60,5 @@ if __name__ == '__main__':
 
   print('--------------------')
 
-  for i in range(video_count, video_count+10):
-    v = elected_videos[i]
-    print("【次点】[{d}] {title} / {author}".format(d=v['start_at'], title=v['title'], author=v['channel_name']))
+  for v in elected_videos:
+    print("【ランク外】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
