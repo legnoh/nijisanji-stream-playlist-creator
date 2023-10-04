@@ -42,8 +42,8 @@ if __name__ == '__main__':
   elected_videos = niji.get_streams(subscription_channels, lang=movie_lang)
 
   print("# プレイリスト確定")
-  # yt.clear_playlistitem(youtube, playlist_id)
-  # yt.insert_playlistitems(youtube, playlist_id, elected_videos[0:video_count-1])
+  yt.clear_playlistitem(youtube, playlist_id)
+  yt.insert_playlistitems(youtube, playlist_id, elected_videos[0:video_count-1])
 
   print("----")
   for v in elected_videos[video_count:len(elected_videos)]:
