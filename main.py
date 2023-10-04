@@ -38,27 +38,13 @@ if __name__ == '__main__':
   subscription_channels = []
   for channel in subscriptions:
     subscription_channels.append(channel['snippet']['title'])
-  
+
   elected_videos = niji.get_streams(subscription_channels, lang=movie_lang)
 
-  yt.clear_playlistitem(youtube, playlist_id)
+  print("# プレイリスト確定")
+  # yt.clear_playlistitem(youtube, playlist_id)
+  # yt.insert_playlistitems(youtube, playlist_id, elected_videos[0:video_count-1])
 
-  for i in range(0, video_count):
-
-    v = elected_videos.pop(0)
-    print("【確定】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
-
-    yt.insert_playlistitem(youtube, body={
-      'snippet': {
-        'playlistId': playlist_id,
-        'resourceId': {
-          'kind': 'youtube#video',
-          'videoId': v['youtube_video_id']
-        }
-      }
-    })
-
-  print('--------------------')
-
-  for v in elected_videos:
+  print("----")
+  for v in elected_videos[video_count:len(elected_videos)]:
     print("【ランク外】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))

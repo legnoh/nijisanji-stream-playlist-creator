@@ -17,10 +17,11 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     all_channels = {}
     all_movies = []
     nominated_movies = []
+    pre_nominated_movies = []
     youtube_video_ids = []
 
     favorite_keywords = ['雑談', '朝', '昼', '凸', 'ラジオ', 'らじ', 'RADIO', '料理', '掃除', '作業', '勉強']
-    filter_keyword = '歌'
+    filter_keyword = '歌|メン限|メンバー限定|MEMBER'
     common_words = []
     words = []
 
@@ -44,35 +45,36 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
                 if data['type'] == 'youtube_channel':
                     all_channels[data['id']] = data['attributes']['name']
 
+        print("# 情報収集")
         for i,m in enumerate(all_movies):
 
-            # チャンネル名を特定して含める
+            # 欲しい情報をdictに追加しておく
+            ## チャンネル名
             for relate_id, channel_name in all_channels.items():
                 if relate_id == m['youtube_channel']['data']['id']:
                     all_movies[i]['channel_name'] = channel_name
 
-            # 動画IDを単体で作っておく
+            ## 動画ID
             all_movies[i]['youtube_video_id'] = m['url'].replace('https://www.youtube.com/watch?v=', '')
-            youtube_video_ids.append(all_movies[i]['youtube_video_id'])
 
-            # 購読チャンネルかどうか
+            ## 購読チャンネル
             if m['channel_name'] in subscription_channels:
                 all_movies[i]['subscribed'] = True
             else:
                 all_movies[i]['subscribed'] = False
 
-            # start_at, end_at をdatetimeフォーマットに加工
+            ## start_at, end_at (datetimeフォーマットに加工)
             if m['start_at'] != None:
                 all_movies[i]['start_at'] = datetime.strptime(m['start_at'], niji_datetimeformat)
             if m['end_at'] != None:
                 all_movies[i]['end_at'] = datetime.strptime(m['end_at'], niji_datetimeformat)
             
-            # 配信言語を推定
+            ## 配信言語(推定)
             m_lang = detector.detect_language_of(m['title'])
             if m_lang != None:
                 all_movies[i]['lang'] = m_lang.name
             
-            # キーワード一致フラグ
+            ## キーワード一致フラグ
             for keyword in favorite_keywords:
                 if keyword in m['title']:
                     all_movies[i]['keyword_match'] = True
@@ -90,6 +92,7 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
                         words.append(token.surface)
         
         # 頻出単語上位10個から10回以上出たものを除外ワードとして特定
+        print("# トレンドワード特定")
         c = collections.Counter(words)
         common_words_select = c.most_common(10)
         for w in common_words_select:
@@ -97,16 +100,9 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
                 print("除外ワード: {w}".format(w=w))
                 common_words.append(w[0])
         
-        # メン限配信のリストを取得
-        members_only_video_ids = opeapi.get_members_only_video_ids(youtube_video_ids)
-        
         # 除外ロジック
+        print("# 除外")
         for i,m in enumerate(all_movies):
-
-            # メンバー限定配信を除外する
-            if m['youtube_video_id'] in members_only_video_ids:
-                print("除外(メン限): {t}".format(t=m['title']))
-                continue
 
             # 頻出単語を含むものをリストから除外する
             # (あまりにブームになっているものはつまらないので)
@@ -139,11 +135,21 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             if lang != None and lang != m['lang']:
                 print("除外(対象外言語({l})): {t}".format(l=m['lang'], t=m['title']))
                 continue
-            
-            # ここまで残ったものだけをリスト追加候補として選定する
-            nominated_movies.append(m)
+
+            # ここまで残ったものをプレ候補として選定する
+            pre_nominated_movies.append(m)
         
+        # 最後にメン限かどうか判定する
+        print("# メン限判定")
+        youtube_video_ids = [d.get('youtube_video_id') for d in pre_nominated_movies]
+        members_only_video_ids = opeapi.get_members_only_video_ids(youtube_video_ids)
+        for m in pre_nominated_movies:
+            if m['youtube_video_id'] in members_only_video_ids:
+                print("除外(メン限): {t}".format(t=m['title']))
+            nominated_movies.append(m)
+
         # 残った動画をジャンル別に整理していく
+        print("# 最終ピックアップ")
         movies_genred = [[],[],[],[],[],[],[]]
         for m in nominated_movies:
 

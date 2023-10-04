@@ -68,16 +68,43 @@ def list_playlistitems(youtube, **params):
   return videos
 
 
-def insert_playlistitem(youtube, **params):
-  
-  params['part'] = 'snippet'
-  params['fields'] = 'id,snippet(position)'
-  return youtube.playlistItems().insert(**params).execute()
+def insert_playlistitems(youtube, playlist_id, items):
+
+  # batch = youtube.new_batch_http_request(callback=insert_exception)
+  for i,v in enumerate(items):
+    print("【採用】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
+    youtube.playlistItems().insert(
+      part='snippet',
+      fields='id,snippet(position)',
+      body={
+      'snippet': {
+        'playlistId': playlist_id,
+        'position': i,
+        'resourceId': {
+          'kind': 'youtube#video',
+          'videoId': v['youtube_video_id']
+        }
+      }
+    }
+    ).execute()
+  # batch.execute()
+
 
 
 def clear_playlistitem(youtube, playlist_id):
+
+  print("Remove all playlist items...")
   items = list_playlistitems(youtube, playlistId=playlist_id)
+  batch = youtube.new_batch_http_request()
   for item in items:
-    youtube.playlistItems().delete(
-          id=item['id']
-    ).execute()
+    batch.add(youtube.playlistItems().delete(id=item['id']))
+  batch.execute()
+  print("Removed all playlist items successfully.")
+
+def insert_exception(request_id, response, exception):
+  if exception is not None:
+    print("Error with insert playlist items: {e}: {rq}:{rs}".format(e=exception, rq=request_id, rs=response))
+    pass
+  else:
+    print("Inserted playlist items successfully: {rq}:{rs}".format(rq=request_id, rs=response))
+    pass
