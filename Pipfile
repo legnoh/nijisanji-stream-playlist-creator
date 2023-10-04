@@ -12,6 +12,7 @@ lingua-language-detector = "*"
 oauth2client = "*"
 pyyaml = "*"
 requests = "*"
+selenium = "*"
 
 [dev-packages]
 

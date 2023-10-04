@@ -31,12 +31,16 @@ jobs:
 
     - name: Install dependencies
       run: pipenv install
+    
+    - name: Start XVFB
+      run: Xvfb :99 &
 
     - name: Execute
       run: pipenv run main
       env:
         YOUTUBE_PLAYLIST_ID: ${{ secrets.YOUTUBE_PLAYLIST_ID }}
         MOVIE_LANGUAGE: JAPANESE
+        DISPLAY: :99
 
     - name: Upload tmp folder
       uses: actions/upload-artifact@v3

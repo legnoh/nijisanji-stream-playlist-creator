@@ -2,8 +2,12 @@ from datetime import datetime
 from janome.tokenizer import Tokenizer, Token
 from lingua import Language, LanguageDetectorBuilder
 from zoneinfo import ZoneInfo
-import collections,itertools,re,requests
+import collections,itertools,re,requests,platform
 import modules.opeapi as opeapi
+import modules.youtube as yt
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromiumService
+from selenium.webdriver.chrome.service import Service as ChromeService
 
 def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15) -> list:
 
@@ -21,13 +25,27 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     youtube_video_ids = []
 
     favorite_keywords = ['雑談', '朝', '昼', '凸', 'ラジオ', 'らじ', 'RADIO', '料理', '掃除', '作業', '勉強']
-    filter_keyword = '歌|メン限|メンバー限定|MEMBER'
+    filter_keyword = '歌'
     common_words = []
     words = []
 
     languages = [Language.JAPANESE, Language.ENGLISH, Language.KOREAN, Language.INDONESIAN]
     detector = LanguageDetectorBuilder.from_languages(*languages).build()
     t = Tokenizer("./niji_dict.csv", udic_enc="utf8")
+
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+
+    if platform.system() == 'Linux':
+        print("initializing chromium...")
+        driver = webdriver.Chrome(service=ChromiumService(), options=chrome_options)
+    else:
+        print("initializing chrome...")
+        driver = webdriver.Chrome(service=ChromeService(), options=chrome_options)
+    driver.implicitly_wait(5)
+    driver.get("https://www.youtube.com/")
 
     try:
         for day_offset in day_offsets:
@@ -73,7 +91,6 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             m_lang = detector.detect_language_of(m['title'])
             if m_lang != None:
                 all_movies[i]['lang'] = m_lang.name
-                print(m_lang.name)
             
             ## キーワード一致フラグ
             for keyword in favorite_keywords:
@@ -142,12 +159,11 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         
         # 最後にメン限かどうか判定する
         print("# メン限判定")
-        youtube_video_ids = [d.get('youtube_video_id') for d in pre_nominated_movies]
-        members_only_video_ids = opeapi.get_members_only_video_ids(youtube_video_ids)
         for m in pre_nominated_movies:
-            if m['youtube_video_id'] in members_only_video_ids:
+            if yt.is_members_only(driver, m['youtube_video_id']):
                 print("除外(メン限): {t}".format(t=m['title']))
-            nominated_movies.append(m)
+            else:
+                nominated_movies.append(m)
 
         # 残った動画をジャンル別に整理していく
         print("# 最終ピックアップ")

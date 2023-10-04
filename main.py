@@ -43,8 +43,8 @@ if __name__ == '__main__':
 
   print("# プレイリスト確定")
   yt.clear_playlistitem(youtube, playlist_id)
-  yt.insert_playlistitems(youtube, playlist_id, elected_videos[0:video_count-1])
+  yt.insert_playlistitems(youtube, playlist_id, elected_videos[0:video_count])
 
   print("----")
-  for v in elected_videos[video_count:len(elected_videos)]:
+  for v in elected_videos[video_count+1:len(elected_videos)]:
     print("【ランク外】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))

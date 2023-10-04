@@ -1,7 +1,8 @@
 import requests
+from selenium.webdriver.common.by import By
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
+from selenium.webdriver.chromium.webdriver import ChromiumDriver
 
 def get_channels(youtube, **params):
 
@@ -108,3 +109,11 @@ def insert_exception(request_id, response, exception):
   else:
     print("Inserted playlist items successfully: {rq}:{rs}".format(rq=request_id, rs=response))
     pass
+
+def is_members_only(driver, video_id) -> bool:
+  driver.get("https://www.youtube.com/watch?v={v}".format(v=video_id))
+  ele = driver.find_element(By.CSS_SELECTOR, "ytd-badge-supported-renderer.style-scope")
+  badge = driver.find_elements(By.CSS_SELECTOR, "div.badge-style-type-members-only")
+  if len(badge) > 0:
+    return True
+  return False
