@@ -24,8 +24,8 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     pre_nominated_movies = []
     youtube_video_ids = []
 
-    favorite_keywords = ['雑談', '朝', '昼', '凸', 'ラジオ', '酒', 'らじ', 'RADIO', '料理', '掃除', '作業', '勉強']
-    filter_keyword = '歌'
+    favorite_keywords = ['雑談', '朝', '昼', '凸', 'ラジオ', '酒', '晩酌', 'らじ', 'RADIO', '料理', '掃除', '作業', '勉強']
+    filter_keyword = '歌|メン限|メンバー限定|MEMBER'
     common_words = []
     words = []
 
