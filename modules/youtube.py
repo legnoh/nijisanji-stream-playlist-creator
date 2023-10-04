@@ -96,10 +96,8 @@ def clear_playlistitem(youtube, playlist_id):
 
   print("Remove all playlist items...")
   items = list_playlistitems(youtube, playlistId=playlist_id)
-  batch = youtube.new_batch_http_request()
   for item in items:
-    batch.add(youtube.playlistItems().delete(id=item['id']))
-  batch.execute()
+    youtube.playlistItems().delete(id=item['id'])).execute()
   print("Removed all playlist items successfully.")
 
 def insert_exception(request_id, response, exception):
