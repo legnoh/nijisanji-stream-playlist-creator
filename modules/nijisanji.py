@@ -27,7 +27,8 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     favorite_keywords = ['雑談', 'ざつだん',
                          '朝', '昼', '夕', '晩', '夜',
                          '凸', '酒', '料理', '掃除', '作業', '勉強',
-                         'らじ', 'ラジ', 'RADIO']
+                         'らじ', 'ラジ', 'RADIO',
+                         '競馬', '賞', '記念', '杯', 'ダービー', 'オークス']
     filter_keyword = '歌|メン限|メンバー限定|MEMBER'
     common_words = []
     words = []
