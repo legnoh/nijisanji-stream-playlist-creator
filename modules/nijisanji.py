@@ -144,12 +144,12 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
                 continue
         
             # 配信終了から指定時間以上経ったものも除外する
-            if m['end_at'] != None and (now - m['end_at']).seconds > (archive_hours * 60 * 60):
+            if m['end_at'] != None and (now - m['end_at']).total_seconds() > (archive_hours * 60 * 60):
                 print("除外({n}時間経過): {t}".format(n=archive_hours,t=m['title']))
                 continue
 
             # 配信前で、配信開始前15分以上のものも除外する
-            if m['end_at'] == None and m['status'] == 'not_on_air' and (m['start_at'] - now).seconds > wait_minutes * 60:
+            if m['end_at'] == None and m['status'] == 'not_on_air' and (m['start_at'] - now).total_seconds() > wait_minutes * 60:
                 print("除外(開始{n}分以上前): {t}".format(n=wait_minutes,t=m['title']))
                 continue
 
