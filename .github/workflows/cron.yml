@@ -17,18 +17,11 @@ jobs:
     - name: Download token.json
       run: echo ${{ secrets.YOUTUBE_TOKEN_FILE }} | base64 -d > token.json
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
+    - name: Install Python, pipenv and Pipfile packages
+      uses: palewire/install-python-pipenv-pipfile@v3
       with:
-        python-version: '3.x'
-        cache: pipenv
-    
-    - name: Install pipenv
-      run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+        python-version: 3.11
 
-    - name: Install dependencies
-      run: pipenv install
-    
     - name: Start XVFB
       run: Xvfb :99 &
 
