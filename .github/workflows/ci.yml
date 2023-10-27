@@ -8,13 +8,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Install pipenv
-      run: pipx install pipenv
+    - name: Check Out Repo 
+      uses: actions/checkout@v4
+
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.x'
         cache: pipenv
+    
+    - name: Install pipenv
+      run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+
     - name: Install dependencies
       run: pipenv install
