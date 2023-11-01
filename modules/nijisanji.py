@@ -95,6 +95,8 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             m_lang = detector.detect_language_of(m['title'])
             if m_lang != None:
                 all_movies[i]['lang'] = m_lang.name
+            else:
+                all_movies[i]['lang'] = None
             
             ## キーワード一致フラグ
             for keyword in favorite_keywords:
