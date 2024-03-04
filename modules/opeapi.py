@@ -1,5 +1,4 @@
-import requests
-import numpy
+import requests,logging
 
 def get_members_only_video_ids(video_ids):
 
@@ -10,7 +9,7 @@ def get_members_only_video_ids(video_ids):
         target_lists.append(video_ids[i: i+10])    
 
     for i,target_list in enumerate(target_lists):
-        print("({c}/{a}) Fetching members only video information...".format(c=i*10,a=len(target_lists)*10))
+        logging.info("({c}/{a}) Fetching members only video information...".format(c=i*10,a=len(target_lists)*10))
         try:
             response = requests.get(
                 url="https://yt.lemnoslife.com/videos",
@@ -26,7 +25,7 @@ def get_members_only_video_ids(video_ids):
                     member_only_video_ids.append(item['id'])  
 
         except requests.exceptions.RequestException as e:
-            print('ERROR: {e}'.format(e=e))
+            logging.info('ERROR: {e}'.format(e=e))
             return []
 
     return member_only_video_ids

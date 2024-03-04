@@ -2,14 +2,14 @@ from datetime import datetime
 from janome.tokenizer import Tokenizer, Token
 from lingua import Language, LanguageDetectorBuilder
 from zoneinfo import ZoneInfo
-import collections,itertools,re,requests,platform
+import collections,itertools,re,requests,platform,logging
 import modules.opeapi as opeapi
-import modules.youtube as yt
+import modules.youtube_direct as ytd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromiumService
 from selenium.webdriver.chrome.service import Service as ChromeService
 
-def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15) -> list:
+def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15) -> list[dict] | None:
 
     now = datetime.now(ZoneInfo("Asia/Tokyo"))
     niji_datetimeformat = '%Y-%m-%dT%H:%M:%S.%f%z'
@@ -43,17 +43,17 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     chrome_options.add_argument('--disable-dev-shm-usage')
 
     if platform.system() == 'Linux':
-        print("initializing chromium...")
+        logging.info("initializing chromium...")
         driver = webdriver.Chrome(service=ChromiumService(), options=chrome_options)
     else:
-        print("initializing chrome...")
+        logging.info("initializing chrome...")
         driver = webdriver.Chrome(service=ChromeService(), options=chrome_options)
     driver.implicitly_wait(5)
     driver.get("https://www.youtube.com/")
 
     try:
         for day_offset in day_offsets:
-            print("fetch movie data with day_offset={o}".format(o=day_offset))
+            logging.info("fetch movie data with day_offset={o}".format(o=day_offset))
             response = requests.get(
                 url="https://www.nijisanji.jp/api/streams",
                 params={
@@ -67,7 +67,7 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
                 if data['type'] == 'youtube_channel':
                     all_channels[data['id']] = data['attributes']['name']
 
-        print("# 情報収集")
+        logging.info("# 情報収集")
         for i,m in enumerate(all_movies):
 
             # 欲しい情報をdictに追加しておく
@@ -116,16 +116,16 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
                         words.append(token.surface)
         
         # 頻出単語上位10個から10回以上出たものを除外ワードとして特定
-        print("# トレンドワード特定")
+        logging.info("# トレンドワード特定")
         c = collections.Counter(words)
         common_words_select = c.most_common(10)
         for w in common_words_select:
             if w[1] > 10:
-                print("除外ワード: {w}".format(w=w))
+                logging.info("除外ワード: {w}".format(w=w))
                 common_words.append(w[0])
         
         # 除外ロジック
-        print("# 除外")
+        logging.info("# 除外")
         for i,m in enumerate(all_movies):
 
             # 頻出単語を含むものをリストから除外する
@@ -134,7 +134,7 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             for cw in common_words:
                 if cw in m['title']:
                     exc_flag = True
-                    print("除外(頻出({w})): {t}".format(w=cw, t=m['title']))
+                    logging.info("除外(頻出({w})): {t}".format(w=cw, t=m['title']))
                     break
             if exc_flag == True:
                 continue
@@ -142,37 +142,37 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             # 除外キーワードの配信を除外する
             # (ログインが必要な配信、ライブ性のない配信はリストに入れても意味がない)
             if len(re.findall(filter_keyword, m['title'])) != 0:
-                print("除外(不適格): {t}".format(t=m['title']))
+                logging.info("除外(不適格): {t}".format(t=m['title']))
                 continue
         
             # 配信終了から指定時間以上経ったものも除外する
             if m['end_at'] != None and (now - m['end_at']).total_seconds() > (archive_hours * 60 * 60):
-                print("除外({n}時間経過): {t}".format(n=archive_hours,t=m['title']))
+                logging.info("除外({n}時間経過): {t}".format(n=archive_hours,t=m['title']))
                 continue
 
             # 配信前で、配信開始前15分以上のものも除外する
             if m['end_at'] == None and m['status'] == 'not_on_air' and (m['start_at'] - now).total_seconds() > wait_minutes * 60:
-                print("除外(開始{n}分以上前): {t}".format(n=wait_minutes,t=m['title']))
+                logging.info("除外(開始{n}分以上前): {t}".format(n=wait_minutes,t=m['title']))
                 continue
 
             # 配信言語指定がある場合、指定した言語以外の配信を除外する
             if lang != None and lang != m['lang']:
-                print("除外(対象外言語({l})): {t}".format(l=m['lang'], t=m['title']))
+                logging.info("除外(対象外言語({l})): {t}".format(l=m['lang'], t=m['title']))
                 continue
 
             # ここまで残ったものをプレ候補として選定する
             pre_nominated_movies.append(m)
         
         # 最後にメン限かどうか判定する
-        print("# メン限判定")
+        logging.info("# メン限判定")
         for m in pre_nominated_movies:
-            if yt.is_members_only(driver, m['youtube_video_id']):
-                print("除外(メン限): {t}".format(t=m['title']))
+            if ytd.is_members_only(driver, m['youtube_video_id']):
+                logging.info("除外(メン限): {t}".format(t=m['title']))
             else:
                 nominated_movies.append(m)
 
         # 残った動画をジャンル別に整理していく
-        print("# 最終ピックアップ")
+        logging.info("# 最終ピックアップ")
         movies_genred = [[],[],[],[],[],[],[]]
         for m in nominated_movies:
 
@@ -222,4 +222,5 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         return movies
 
     except requests.exceptions.RequestException:
-        print('HTTP Request failed')
+        logging.warn('HTTP Request failed')
+        return None

@@ -1,12 +1,11 @@
-import os
-import modules.youtube as yt
+import os,logging,sys
 import modules.nijisanji as niji
 from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
+from modules.youtube import Yt
 
 token_file = './token.json'
-playlist_id = os.environ.get('YOUTUBE_PLAYLIST_ID')
+playlist_id = os.environ['YOUTUBE_PLAYLIST_ID']
 movie_lang = os.environ.get('MOVIE_LANGUAGE', None)
 video_count = int(os.environ.get('VIDEO_COUNT', 5))
 
@@ -17,7 +16,9 @@ scopes = [
 
 if __name__ == '__main__':
 
-  creds = None
+  log_format = '%(asctime)s[%(filename)s:%(lineno)d][%(levelname)s] %(message)s'
+  log_level = os.getenv("LOGLEVEL", logging.INFO)
+  logging.basicConfig(format=log_format, datefmt='%Y-%m-%d %H:%M:%S%z', level=log_level)
 
   if os.path.exists(token_file):
     creds = Credentials.from_authorized_user_file(token_file, scopes)
@@ -25,26 +26,25 @@ if __name__ == '__main__':
     if creds and creds.expired and creds.refresh_token:
       creds.refresh(Request())
 
-  youtube = build(
-    serviceName='youtube',
-    version='v3',
-    credentials=creds
-  )
-
-  my_channel = yt.get_channels(youtube, mine=True)
+  yt = Yt(creds)
+  my_channel    = yt.get_channels(mine=True)
   my_channel_id = my_channel[0]['id']
 
-  subscriptions = yt.get_subscriptions(youtube, channelId=my_channel_id, )
+  subscriptions = yt.get_subscriptions(channelId=my_channel_id)
   subscription_channels = []
   for channel in subscriptions:
     subscription_channels.append(channel['snippet']['title'])
 
   elected_videos = niji.get_streams(subscription_channels, lang=movie_lang)
 
-  print("# プレイリスト確定")
-  yt.clear_playlistitem(youtube, playlist_id)
-  yt.insert_playlistitems(youtube, playlist_id, elected_videos[0:video_count])
+  if elected_videos == None:
+    logging.error("failed to choise videos... exited")
+    sys.exit(1)
 
-  print("----")
+  logging.info("# プレイリスト確定")
+  yt.clear_playlistitem(playlist_id)
+  yt.insert_playlistitems(playlist_id, elected_videos[0:video_count])
+
+  logging.info("----")
   for v in elected_videos[video_count+1:len(elected_videos)]:
-    print("【ランク外】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
+    logging.info("【ランク外】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
