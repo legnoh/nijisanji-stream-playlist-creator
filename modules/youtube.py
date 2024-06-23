@@ -106,7 +106,7 @@ class Yt:
     logging.info("Remove all playlist items...")
     items = self.list_playlistitems(playlistId=playlist_id)
     for item in items:
-      self.client.playlistItems().delete(id=item['id']).execute()
+      self.client.playlistItems().delete(id=item['id'], timeout=300.0).execute()
     logging.info("Removed all playlist items successfully.")
 
   # def insert_exception(self, request_id, response, exception):
