@@ -1,7 +1,7 @@
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.credentials import Credentials
-import logging
+import logging, ssl
 
 class Yt:
 
@@ -106,7 +106,11 @@ class Yt:
     logging.info("Remove all playlist items...")
     items = self.list_playlistitems(playlistId=playlist_id)
     for item in items:
-      self.client.playlistItems().delete(id=item['id'], timeout=300.0).execute()
+      try:
+        self.client.playlistItems().delete(id=item['id'], timeout=300.0).execute()
+      except ssl.SSLEOFError as e:
+        logging.warning(f"error occured: {e}")
+        continue
     logging.info("Removed all playlist items successfully.")
 
   # def insert_exception(self, request_id, response, exception):
