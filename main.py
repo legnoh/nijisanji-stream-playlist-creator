@@ -22,6 +22,8 @@ if __name__ == '__main__':
 
   if os.path.exists(token_file):
     creds = Credentials.from_authorized_user_file(token_file, scopes)
+  else:
+    logging.error("token.json is not found. Please execute `pipenv run refresh` before this script!")
   if not creds or not creds.valid:
     if creds and creds.expired and creds.refresh_token:
       creds.refresh(Request())
