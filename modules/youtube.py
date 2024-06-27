@@ -107,7 +107,7 @@ class Yt:
     items = self.list_playlistitems(playlistId=playlist_id)
     for item in items:
       try:
-        self.client.playlistItems().delete(id=item['id'], timeout=300.0).execute()
+        self.client.playlistItems().delete(id=item['id']).execute()
       except ssl.SSLEOFError as e:
         logging.warning(f"error occured: {e}")
         continue
