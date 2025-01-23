@@ -6,8 +6,7 @@ import collections,itertools,re,requests,platform,logging
 import modules.opeapi as opeapi
 import modules.youtube_direct as ytd
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromiumService
-from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.service import Service
 
 def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15) -> list[dict] | None:
 
@@ -37,23 +36,13 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     detector = LanguageDetectorBuilder.from_languages(*languages).build()
     t = Tokenizer("./niji_dict.csv", udic_enc="utf8")
 
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
-
-    if platform.system() == 'Linux':
-        logging.info("initializing chromium...")
-        driver = webdriver.Chrome(service=ChromiumService(), options=chrome_options)
-    else:
-        logging.info("initializing chrome...")
-        driver = webdriver.Chrome(service=ChromeService(), options=chrome_options)
-    driver.implicitly_wait(5)
+    driver = webdriver.Chrome(service=Service(), options=webdriver.ChromeOptions())
+    driver.implicitly_wait(0.5)
     driver.get("https://www.youtube.com/")
 
     try:
         for day_offset in day_offsets:
-            logging.info("fetch movie data with day_offset={o}".format(o=day_offset))
+            logging.info(f"fetch movie data with day_offset={day_offset}")
             response = requests.get(
                 url="https://www.nijisanji.jp/api/streams",
                 params={
@@ -121,7 +110,7 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         common_words_select = c.most_common(10)
         for w in common_words_select:
             if w[1] > 10:
-                logging.info("除外ワード: {w}".format(w=w))
+                logging.info(f"除外ワード: {w}")
                 common_words.append(w[0])
         
         # 除外ロジック
@@ -134,7 +123,7 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             for cw in common_words:
                 if cw in m['title']:
                     exc_flag = True
-                    logging.info("除外(頻出({w})): {t}".format(w=cw, t=m['title']))
+                    logging.info(f"除外(頻出({cw})): {m['title']}")
                     break
             if exc_flag == True:
                 continue
@@ -142,22 +131,22 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
             # 除外キーワードの配信を除外する
             # (ログインが必要な配信、ライブ性のない配信はリストに入れても意味がない)
             if len(re.findall(filter_keyword, m['title'])) != 0:
-                logging.info("除外(不適格): {t}".format(t=m['title']))
+                logging.info(f"除外(不適格): {m['title']}")
                 continue
         
             # 配信終了から指定時間以上経ったものも除外する
             if m['end_at'] != None and (now - m['end_at']).total_seconds() > (archive_hours * 60 * 60):
-                logging.info("除外({n}時間経過): {t}".format(n=archive_hours,t=m['title']))
+                logging.info(f"除外({archive_hours}時間経過): {m['title']}")
                 continue
 
             # 配信前で、配信開始前15分以上のものも除外する
             if m['end_at'] == None and m['status'] == 'not_on_air' and (m['start_at'] - now).total_seconds() > wait_minutes * 60:
-                logging.info("除外(開始{n}分以上前): {t}".format(n=wait_minutes,t=m['title']))
+                logging.info(f"除外(開始{wait_minutes}分以上前): {m['title']}")
                 continue
 
             # 配信言語指定がある場合、指定した言語以外の配信を除外する
             if lang != None and lang != m['lang']:
-                logging.info("除外(対象外言語({l})): {t}".format(l=m['lang'], t=m['title']))
+                logging.info(f"除外(対象外言語({m['lang']})): {m['title']}")
                 continue
 
             # ここまで残ったものをプレ候補として選定する
@@ -167,7 +156,7 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         logging.info("# メン限判定")
         for m in pre_nominated_movies:
             if ytd.is_members_only(driver, m['youtube_video_id']):
-                logging.info("除外(メン限): {t}".format(t=m['title']))
+                logging.info(f"除外(メン限): {m['title']}")
             else:
                 nominated_movies.append(m)
 
@@ -222,5 +211,5 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         return movies
 
     except requests.exceptions.RequestException:
-        logging.warn('HTTP Request failed')
+        logging.warning('HTTP Request failed')
         return None

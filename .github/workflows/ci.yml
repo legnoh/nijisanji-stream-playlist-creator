@@ -11,7 +11,10 @@ jobs:
     - name: Check Out Repo 
       uses: actions/checkout@v4
 
-    - name: Install Python, pipenv and Pipfile packages
-      uses: palewire/install-python-pipenv-pipfile@v4
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: 3.11
+        enable-cache: true
+
+    - name: Install dependencies
+      run: uv sync --dev

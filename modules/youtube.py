@@ -82,7 +82,7 @@ class Yt:
 
     # batch = youtube.new_batch_http_request(callback=insert_exception)
     for i,v in enumerate(items):
-      logging.info("【採用】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
+      logging.info(f"【採用】[{v['start_at']}] {v['title']} / {v['channel_name']}")
       self.client.playlistItems().insert(
         part='snippet',
         fields='id,snippet(position)',
@@ -115,8 +115,8 @@ class Yt:
 
   # def insert_exception(self, request_id, response, exception):
   #   if exception is not None:
-  #     logging.info("Error with insert playlist items: {e}: {rq}:{rs}".format(e=exception, rq=request_id, rs=response))
+  #     logging.info(f"Error with insert playlist items: {exception}: {request_id}:{response}")
   #     pass
   #   else:
-  #     logging.info("Inserted playlist items successfully: {rq}:{rs}".format(rq=request_id, rs=response))
+  #     logging.info(f"Inserted playlist items successfully: {request_id}:{response}")
   #     pass

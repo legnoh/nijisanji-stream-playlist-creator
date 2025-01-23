@@ -23,7 +23,8 @@ if __name__ == '__main__':
   if os.path.exists(token_file):
     creds = Credentials.from_authorized_user_file(token_file, scopes)
   else:
-    logging.error("token.json is not found. Please execute `pipenv run refresh` before this script!")
+    logging.error("token.json is not found. Please execute `uv run get_token.py` before this script!")
+    sys.exit(1)
   if not creds or not creds.valid:
     if creds and creds.expired and creds.refresh_token:
       creds.refresh(Request())
@@ -49,4 +50,4 @@ if __name__ == '__main__':
 
   logging.info("----")
   for v in elected_videos[video_count+1:len(elected_videos)]:
-    logging.info("【ランク外】[{d}] {t} / {a}".format(d=v['start_at'], t=v['title'], a=v['channel_name']))
+    logging.info(f"【ランク外】[{v['start_at']}] {v['title']} / {v['channel_name']}")
