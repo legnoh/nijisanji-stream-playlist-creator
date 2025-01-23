@@ -2,11 +2,12 @@ from datetime import datetime
 from janome.tokenizer import Tokenizer, Token
 from lingua import Language, LanguageDetectorBuilder
 from zoneinfo import ZoneInfo
-import collections,itertools,re,requests,platform,logging
+import collections,itertools,re,requests,os,logging
 import modules.opeapi as opeapi
 import modules.youtube_direct as ytd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from pyvirtualdisplay.display import Display
 
 def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15) -> list[dict] | None:
 
@@ -35,6 +36,11 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     languages = [Language.JAPANESE, Language.ENGLISH, Language.KOREAN, Language.INDONESIAN]
     detector = LanguageDetectorBuilder.from_languages(*languages).build()
     t = Tokenizer("./niji_dict.csv", udic_enc="utf8")
+
+    if os.environ.get('GITHUB_ACTIONS', False):
+        logging.info("# start display...")
+        display = Display(visible=False, size=(1024, 768))
+        display.start()
 
     driver = webdriver.Chrome(service=Service(), options=webdriver.ChromeOptions())
     driver.implicitly_wait(0.5)
