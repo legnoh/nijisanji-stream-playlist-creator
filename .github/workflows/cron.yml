@@ -1,6 +1,7 @@
-name: Update playlist
+name: CI
 
 on:
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: '45 0-12 * * *'
@@ -11,29 +12,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Check Out Repo 
+    - name: Checkout repository
       uses: actions/checkout@v4
     
-    - name: Download token.json
-      run: echo ${{ secrets.YOUTUBE_TOKEN_FILE }} | base64 -d > token.json
-
     - name: Setup uv
       uses: astral-sh/setup-uv@v5
       with:
         enable-cache: true
 
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --frozen
+
+    - name: Download token.json
+      if: github.event_name != 'pull_request'
+      run: echo ${{ secrets.YOUTUBE_TOKEN_FILE }} | base64 -d > token.json
 
     - name: Execute
+      if: github.event_name != 'pull_request'
       run: uv run main.py
       env:
         YOUTUBE_PLAYLIST_ID: ${{ secrets.YOUTUBE_PLAYLIST_ID }}
         MOVIE_LANGUAGE: JAPANESE
 
     - name: Upload tmp folder
+      if: github.event_name != 'pull_request' && always()
       uses: actions/upload-artifact@v4
-      if: ${{ always() }}
       with:
         name: token.json
         path: token.json
