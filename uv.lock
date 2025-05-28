@@ -189,16 +189,16 @@ wheels = [
 
 [[package]]
 name = "lingua-language-detector"
-version = "2.1.0"
+version = "2.1.1"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/1d/abf63fa5497e17853b44759811443adf9c040f26356d2aa894131574175e/lingua_language_detector-2.1.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:a8ae3a168b3f1f7a38e47db6b22b420554c787df61e17d46c46f20e73c1023dc", size = 96058978, upload-time = "2025-03-20T17:52:11.623Z" },
-    { url = "https://files.pythonhosted.org/packages/ba/54/d94a57dd228fe751b2f495577f1cff40dc3ef99078b18f8799cb00f067bd/lingua_language_detector-2.1.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:06bc620bb3e2a307d8b3e099872dd717114369fab7787e1504e32ba0fb12c6ca", size = 96714195, upload-time = "2025-03-20T17:52:17.652Z" },
-    { url = "https://files.pythonhosted.org/packages/e6/a1/fa0fa8295946aafdc9e77f724494359d9869c7c5f2f959bd4be32615ca36/lingua_language_detector-2.1.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0bab355fbba480a8a87678246e678b23f8ca5fb03d61b16804cd877aa4a4f61c", size = 96164522, upload-time = "2025-03-20T17:52:23.583Z" },
-    { url = "https://files.pythonhosted.org/packages/5a/01/445526531f0d8a7589cc6ae5f7ff228cecd6b5d52b284e70f050b0fdf9f9/lingua_language_detector-2.1.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f154830ed190a0b0cdb5983a3a92b7456a4b097eca96843352d26d86ade5fb12", size = 96249603, upload-time = "2025-03-20T17:52:28.953Z" },
-    { url = "https://files.pythonhosted.org/packages/8b/4b/bed5cb110cc8ec0d96dd786f645021128b569d65ee0b7e87d34b58053149/lingua_language_detector-2.1.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:892639a886e43bc19b0e4ebf28638fbea79dda2aba629c0ce01a81e263659744", size = 96337231, upload-time = "2025-03-20T17:52:34.544Z" },
-    { url = "https://files.pythonhosted.org/packages/71/07/810da2920b50d10c5cb2b8b45971469a3aef82c5d4228ce12b2f5924270b/lingua_language_detector-2.1.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:a75a8156457066be6e64741dba361f1388287092564bcc7226308c53be46f159", size = 96418863, upload-time = "2025-03-20T17:52:39.588Z" },
-    { url = "https://files.pythonhosted.org/packages/c7/83/b3d8884374dc0b09ddec660366470abd8af5fe499350905b7c160698b542/lingua_language_detector-2.1.0-cp313-cp313-win_amd64.whl", hash = "sha256:a297a9f92341a91742949e5d7a3954714303018141977e6c259d78972b9b8d03", size = 95865411, upload-time = "2025-03-20T17:52:45.159Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/54/f95fe718a889f7b57e507580d2713e29dfc5eaadbe4ad323bfd631fc9490/lingua_language_detector-2.1.1-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:6190e7632d08467dd3d148134743c4c40ccb4c84d6f3313508ffd73a8210c614", size = 96059594, upload-time = "2025-05-27T20:42:15.713Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/f2/61aad0aecf707e112bae4340275934eb4098c6c3040ffe7ae316498ea78f/lingua_language_detector-2.1.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:bbf22f8b1715f577f8cda4758d61ff3c1f5238d48b8cbe035a3c2064edf7b0a5", size = 96718187, upload-time = "2025-05-27T20:42:20.97Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/82/0571a607046a73284e43f46b4ef22f903156799f4ee96aa5b466ace632a8/lingua_language_detector-2.1.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fe21c948a387fd9aa0b994853eb47cfedcc738a91530193de839ef0977ecc0de", size = 96161005, upload-time = "2025-05-27T20:42:26.985Z" },
+    { url = "https://files.pythonhosted.org/packages/79/27/647e2a112e974d24e98f1168004522960d47991e122f43438e75fd1d06e2/lingua_language_detector-2.1.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d55300513d9e2e0e034f6fd6b8cf111ba9faf49ba20cc060d67b403c3d356148", size = 96236397, upload-time = "2025-05-27T20:42:32.103Z" },
+    { url = "https://files.pythonhosted.org/packages/82/c6/2e9cc80bdd621648e4e27c3d40dc04bd7fc85fbfd5698692217008b15090/lingua_language_detector-2.1.1-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:354040a3c2ac748623966373cc64de34e8f14b0043c09aa334fdccf3456bf5d0", size = 96334444, upload-time = "2025-05-27T20:42:37.381Z" },
+    { url = "https://files.pythonhosted.org/packages/14/ae/5c700dc7b4b7d975df93c67b9d80fe2fd153da703721d1e5faa7c97bd194/lingua_language_detector-2.1.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:17110a40f9346a4c24291b170d0deb815bd615427c4857342a7f513813717148", size = 96407649, upload-time = "2025-05-27T20:42:45.921Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/5d/aec2634a8a54c654e5fb5816d703c72263360a23e682bb7f5a4f77e06e70/lingua_language_detector-2.1.1-cp313-cp313-win_amd64.whl", hash = "sha256:53cc131d9c7be64a88b1e20633d66c62a2779776e11a26e32bac80fb19b43f33", size = 95868425, upload-time = "2025-05-27T20:42:51.148Z" },
 ]
 
 [[package]]
