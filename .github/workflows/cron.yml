@@ -38,7 +38,7 @@ jobs:
 
     - name: Upload tmp folder
       if: github.event_name != 'pull_request' && always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: token.json
         path: token.json
