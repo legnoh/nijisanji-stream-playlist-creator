@@ -230,7 +230,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "google-api-python-client", specifier = ">=2.193.0" },
-    { name = "google-auth-httplib2", specifier = ">=0.2.0" },
+    { name = "google-auth-httplib2", specifier = ">=0.3.0" },
     { name = "google-auth-oauthlib", specifier = ">=1.2.1" },
     { name = "janome", specifier = ">=0.5.0" },
     { name = "lingua-language-detector", specifier = ">=1.4.2" },
