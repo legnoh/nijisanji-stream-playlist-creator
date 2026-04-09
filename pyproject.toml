@@ -14,5 +14,5 @@ dependencies = [
     "pyvirtualdisplay>=3.0",
     "pyyaml>=6.0.3",
     "requests>=2.33.1",
-    "selenium>=4.41.0",
+    "selenium>=4.42.0",
 ]
