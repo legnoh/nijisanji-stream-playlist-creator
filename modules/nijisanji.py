@@ -3,26 +3,20 @@ from janome.tokenizer import Tokenizer, Token
 from lingua import Language, LanguageDetectorBuilder
 from zoneinfo import ZoneInfo
 import collections,itertools,re,requests,os,logging
-import modules.opeapi as opeapi
 import modules.youtube_direct as ytd
+from modules.niji_dataclass import RootJSON, Stream, OnAirType
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from pyvirtualdisplay.display import Display
+from bs4 import BeautifulSoup
 
-def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes=15) -> list[dict] | None:
+def get_streams(subscription_channels:list[str], lang=None, archive_hours=12, wait_minutes=15) -> list[Stream] | None:
 
     now = datetime.now(ZoneInfo("Asia/Tokyo"))
-    niji_datetimeformat = '%Y-%m-%dT%H:%M:%S.%f%z'
-    if now.hour >= 12:
-        day_offsets = ["0"]
-    else:
-        day_offsets = ["0", "-1"]
 
-    all_channels = {}
-    all_movies = []
-    nominated_movies = []
-    pre_nominated_movies = []
-    youtube_video_ids = []
+    all_movies: list[Stream] = []
+    nominated_movies: list[Stream] = []
+    pre_nominated_movies: list[Stream] = []
 
     favorite_keywords = ['雑談', 'ざつだん',
                          '朝', '昼', '夕', '晩', '夜',
@@ -47,62 +41,50 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
     driver.get("https://www.youtube.com/")
 
     try:
-        for day_offset in day_offsets:
-            logging.info(f"fetch movie data with day_offset={day_offset}")
-            response = requests.get(
-                url="https://www.nijisanji.jp/api/streams",
-                params={
-                    "day_offset": day_offset,
-                },
-            )
-            raw_json = response.json()
-            all_movies.extend([{**d.get('attributes'), **d.get('relationships')} for d in raw_json['data']])
-
-            for data in raw_json['included']:
-                if data['type'] == 'youtube_channel':
-                    all_channels[data['id']] = data['attributes']['name']
+        logging.info(f"fetch movie data...")
+        response_initial = requests.get("https://www.nijisanji.jp/streams")
+        soup = BeautifulSoup(response_initial.text, "html.parser")
+        script = soup.find("script", id="__NEXT_DATA__")
+        if script and script.string:
+            root_json_data = RootJSON.model_validate_json(script.string)
+            all_movies = root_json_data.props.page_props.streams
+        else:
+            logging.warning("Failed to find __NEXT_DATA__ script")
+            return None
 
         logging.info("# 情報収集")
         for i,m in enumerate(all_movies):
 
+            if m.channel is None:
+                logging.warning(f"channel is None: {m.title}")
+                continue
+
             # 欲しい情報をdictに追加しておく
-            ## チャンネル名
-            for relate_id, channel_name in all_channels.items():
-                if relate_id == m['youtube_channel']['data']['id']:
-                    all_movies[i]['channel_name'] = channel_name
 
             ## 動画ID
-            all_movies[i]['youtube_video_id'] = m['url'].replace('https://www.youtube.com/watch?v=', '')
+            video_url = m.url or ''
+            m.youtube_video_id = video_url.replace('https://www.youtube.com/watch?v=', '')
 
             ## 購読チャンネル
-            if m['channel_name'] in subscription_channels:
-                all_movies[i]['subscribed'] = True
-            else:
-                all_movies[i]['subscribed'] = False
-
-            ## start_at, end_at (datetimeフォーマットに加工)
-            if m['start_at'] != None:
-                all_movies[i]['start_at'] = datetime.strptime(m['start_at'], niji_datetimeformat)
-            if m['end_at'] != None:
-                all_movies[i]['end_at'] = datetime.strptime(m['end_at'], niji_datetimeformat)
+            m.subscribed = m.channel.name in subscription_channels
             
             ## 配信言語(推定)
-            m_lang = detector.detect_language_of(m['title'])
+            m_lang = detector.detect_language_of(m.title or '')
             if m_lang != None:
-                all_movies[i]['lang'] = m_lang.name
+                m.lang = m_lang.name
             else:
-                all_movies[i]['lang'] = None
+                m.lang = None
             
             ## キーワード一致フラグ
             for keyword in favorite_keywords:
-                if keyword in m['title']:
-                    all_movies[i]['keyword_match'] = True
+                if keyword in (m.title or ''):
+                    m.keyword_match = True
                     break
-            if not 'keyword_match' in all_movies[i].keys():
-                    all_movies[i]['keyword_match'] = False
+            if m.keyword_match is None:
+                m.keyword_match = False
 
             # 中の単語を形態素解析で収集
-            for token in t.tokenize(m['title']):
+            for token in t.tokenize(m.title or ''):
                 if type(token) is Token:
                     s_token = token.part_of_speech.split(',')
                     if (s_token[0] == '名詞' and s_token[1] == '一般') \
@@ -121,38 +103,41 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         
         # 除外ロジック
         logging.info("# 除外")
-        for i,m in enumerate(all_movies):
+        for m in all_movies:
 
             # 頻出単語を含むものをリストから除外する
             # (あまりにブームになっているものはつまらないので)
             exc_flag = False
             for cw in common_words:
-                if cw in m['title']:
+                if cw in (m.title or ''):
                     exc_flag = True
-                    logging.info(f"除外(頻出({cw})): {m['title']}")
+                    logging.info(f"除外(頻出({cw})): {m.title}")
                     break
             if exc_flag == True:
                 continue
 
             # 除外キーワードの配信を除外する
             # (ログインが必要な配信、ライブ性のない配信はリストに入れても意味がない)
-            if len(re.findall(filter_keyword, m['title'])) != 0:
-                logging.info(f"除外(不適格): {m['title']}")
+            if len(re.findall(filter_keyword, m.title or '')) != 0:
+                logging.info(f"除外(不適格): {m.title}")
                 continue
         
             # 配信終了から指定時間以上経ったものも除外する
-            if m['end_at'] != None and (now - m['end_at']).total_seconds() > (archive_hours * 60 * 60):
-                logging.info(f"除外({archive_hours}時間経過): {m['title']}")
+            if m.end_at is not None and (now - m.end_at).total_seconds() > (archive_hours * 60 * 60):
+                logging.info(f"除外({archive_hours}時間経過): {m.title}")
                 continue
 
             # 配信前で、配信開始前15分以上のものも除外する
-            if m['end_at'] == None and m['status'] == 'not_on_air' and (m['start_at'] - now).total_seconds() > wait_minutes * 60:
-                logging.info(f"除外(開始{wait_minutes}分以上前): {m['title']}")
+            if (m.start_at is not None
+                and m.end_at is None
+                and m.status == OnAirType.not_on_air
+                and (m.start_at - now).total_seconds() > wait_minutes * 60):
+                logging.info(f"除外(開始{wait_minutes}分以上前): {m.title}")
                 continue
 
             # 配信言語指定がある場合、指定した言語以外の配信を除外する
-            if lang != None and lang != m['lang']:
-                logging.info(f"除外(対象外言語({m['lang']})): {m['title']}")
+            if lang is not None and lang != m.lang:
+                logging.info(f"除外(対象外言語({m.lang})): {m.title}")
                 continue
 
             # ここまで残ったものをプレ候補として選定する
@@ -161,8 +146,8 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         # 最後にメン限かどうか判定する
         logging.info("# メン限判定")
         for m in pre_nominated_movies:
-            if ytd.is_members_only(driver, m['youtube_video_id']):
-                logging.info(f"除外(メン限): {m['title']}")
+            if ytd.is_members_only(driver, m.youtube_video_id or ''):
+                logging.info(f"除外(メン限): {m.title}")
             else:
                 nominated_movies.append(m)
 
@@ -172,32 +157,32 @@ def get_streams(subscription_channels, lang=None, archive_hours=12, wait_minutes
         for m in nominated_movies:
 
             # 1: 配信中, 登録チャンネル, キーワード一致
-            if m['status'] == 'on_air' and m['subscribed'] and m['keyword_match']:
+            if m.status == OnAirType.on_air and m.subscribed and m.keyword_match:
                 movies_genred[0].append(m)
                 continue
-            
+
             # 2: 登録チャンネル、キーワード一致
-            if m['subscribed'] and m['keyword_match']:
+            if m.subscribed and m.keyword_match:
                 movies_genred[1].append(m)
                 continue
 
             # 4: キーワード一致
-            if m['keyword_match']:
+            if m.keyword_match:
                 movies_genred[3].append(m)
                 continue
 
             # 3: 配信中, 登録チャンネル
-            if m['status'] == 'on_air' and m['subscribed']:
+            if m.status == OnAirType.on_air and m.subscribed:
                 movies_genred[2].append(m)
                 continue
 
             # 5: 登録チャンネル
-            if m['subscribed']:
+            if m.subscribed:
                 movies_genred[4].append(m)
                 continue
-            
+
             # 6: 配信中
-            if m['subscribed']:
+            if m.status == OnAirType.on_air:
                 movies_genred[5].append(m)
                 continue
 

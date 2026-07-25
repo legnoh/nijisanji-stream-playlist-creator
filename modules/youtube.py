@@ -82,7 +82,7 @@ class Yt:
 
     # batch = youtube.new_batch_http_request(callback=insert_exception)
     for i,v in enumerate(items):
-      logging.info(f"【採用】[{v['start_at']}] {v['title']} / {v['channel_name']}")
+      logging.info(f"【採用】[{v.start_at}] {v.title} / {v.channel_name}")
       self.client.playlistItems().insert(
         part='snippet',
         fields='id,snippet(position)',
@@ -92,7 +92,7 @@ class Yt:
           'position': i,
           'resourceId': {
             'kind': 'youtube#video',
-            'videoId': v['youtube_video_id']
+            'videoId': v.youtube_video_id
           }
         }
       }

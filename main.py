@@ -34,7 +34,7 @@ if __name__ == '__main__':
   my_channel_id = my_channel[0]['id']
 
   subscriptions = yt.get_subscriptions(channelId=my_channel_id)
-  subscription_channels = []
+  subscription_channels:list[str] = []
   for channel in subscriptions:
     subscription_channels.append(channel['snippet']['title'])
 
@@ -50,4 +50,5 @@ if __name__ == '__main__':
 
   logging.info("----")
   for v in elected_videos[video_count+1:len(elected_videos)]:
-    logging.info(f"【ランク外】[{v['start_at']}] {v['title']} / {v['channel_name']}")
+    if v.channel is not None:
+      logging.info(f"【ランク外】[{v.start_at}] {v.title} / {v.channel.name}")
