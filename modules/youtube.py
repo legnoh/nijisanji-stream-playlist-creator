@@ -1,6 +1,7 @@
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.credentials import Credentials
+from modules.niji_dataclass import Stream
 import logging, ssl
 
 class Yt:
@@ -78,11 +79,13 @@ class Yt:
     return videos
 
 
-  def insert_playlistitems(self, playlist_id:str, items):
+  def insert_playlistitems(self, playlist_id:str, items:list[Stream]):
 
     # batch = youtube.new_batch_http_request(callback=insert_exception)
     for i,v in enumerate(items):
-      logging.info(f"【採用】[{v.start_at}] {v.title} / {v.channel_name}")
+      if v.channel is None:
+        continue
+      logging.info(f"【採用】[{v.start_at}] {v.title} / {v.channel.name}")
       self.client.playlistItems().insert(
         part='snippet',
         fields='id,snippet(position)',
