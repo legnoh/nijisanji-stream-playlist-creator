@@ -1,6 +1,7 @@
 from datetime import datetime
 from janome.tokenizer import Tokenizer, Token
-from lingua import Language, LanguageDetectorBuilder
+from langdetect import DetectorFactory, detect_langs
+from langdetect.lang_detect_exception import LangDetectException
 from zoneinfo import ZoneInfo
 import collections,itertools,re,requests,os,logging
 import modules.youtube_direct as ytd
@@ -27,8 +28,8 @@ def get_streams(subscription_channels:list[str], lang=None, archive_hours=12, wa
     common_words = []
     words = []
 
-    languages = [Language.JAPANESE, Language.ENGLISH, Language.KOREAN, Language.INDONESIAN]
-    detector = LanguageDetectorBuilder.from_languages(*languages).build()
+    DetectorFactory.seed = 0
+    lang_names = {'ja': 'JAPANESE', 'en': 'ENGLISH', 'ko': 'KOREAN', 'id': 'INDONESIAN'}
     t = Tokenizer("./niji_dict.csv", udic_enc="utf8")
 
     if os.environ.get('GITHUB_ACTIONS', False):
@@ -69,11 +70,20 @@ def get_streams(subscription_channels:list[str], lang=None, archive_hours=12, wa
             m.subscribed = m.channel.name in subscription_channels
             
             ## 配信言語(推定)
-            m_lang = detector.detect_language_of(m.title or '')
-            if m_lang != None:
-                m.lang = m_lang.name
+            m.lang = None
+            title = m.title or ''
+            if re.search(r'[\u3040-\u30ff]', title):
+                m.lang = 'JAPANESE'
+            elif re.search(r'[\uac00-\ud7a3]', title):
+                m.lang = 'KOREAN'
             else:
-                m.lang = None
+                try:
+                    for candidate in detect_langs(title):
+                        if candidate.lang in lang_names:
+                            m.lang = lang_names[candidate.lang]
+                            break
+                except LangDetectException:
+                    pass
             
             ## キーワード一致フラグ
             for keyword in favorite_keywords:
